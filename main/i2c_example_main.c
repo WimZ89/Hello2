@@ -103,20 +103,20 @@ void ledc_pwm(float duty){
 }
 
 
-int SI7210_init(void);
-int SI7210_read(void);
+//int SI7210_init(void);
+//int SI7210_read(void);
 void data_uart_task(void *arg);
 
 
 
 //___________________________________________ MAIN
-void data_uart_send_string(char *s);
+//void data_uart_send_string(char *s);
 
 //void MCP3421_init(int gain);
 //float MCP3421_value(void);
 //void MCP3426_init(int gain);
 //float MCP3426_value(void);
-void MCP3426_task(void *arg);
+//void MCP3426_task(void *arg);
 
 void app_main(void){
 
@@ -127,7 +127,7 @@ void app_main(void){
     i2c_master_init();
 //    xTaskCreatePinnedToCore(task, "test", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
     xTaskCreate(data_uart_task, "data uart", 8000, NULL, 10, NULL);
-    xTaskCreate(MCP3426_task, "MCP3426", 8000, NULL, 10, NULL);
+//    xTaskCreate(MCP3426_task, "MCP3426", 8000, NULL, 10, NULL);
     vTaskDelay(98);
 //    SI7210_init();
     float duty, phase =0;
