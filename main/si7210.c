@@ -35,11 +35,6 @@
 #define R_BURSTCONFIG 0xCD
 #define R_TESTCOIL 0xE4
 
-/* filtering met IIR FIR en bursts. i2c is trager. scheelt ruis
- * slTimeena en fast for continu meting
-#define  0xC
- *
- */
 
 typedef struct {
 	int value;		//filtered value points/2 samples terug
@@ -53,12 +48,9 @@ typedef struct {
 	int bot;		// looks like gaussion exp()
 } gaussian;
 
-// optimalisations - half filter past only
 gaussian filter1;
 
 void gaussian_kernel(int points, int top, int bot, gaussian *gauss){
-//	if (__USE_MISCpoints % 2 == 0)
-//		ESP_LOGI(LOG_LOG, "Need odd points");
 	ESP_LOGI(LOG_HALL, "Calculating for %d points %d over %d\n",points, top,bot);
 	int i,x,y,sumy=0;
 	if (gauss->points != points){ // changing parameters.
@@ -79,12 +71,10 @@ void gaussian_kernel(int points, int top, int bot, gaussian *gauss){
 	for (i=0 ; i< points; i++){ // calculate new distribution
 		x=i-points/2; // the middle
 		y=top/(bot + abs(x*x*x));
-//		printf("%d %d %d\n",i,x, y);
 		sumy+=y;
 		gauss->kernel[i]=y;
 	}
 	gauss->sum=sumy;
-//	printf("sum %d points\n",sumy);
 	for (i=0 ; i< gauss->points; i++)
 		printf("%d ",gauss->kernel[i]);
 	printf("\r\n");
@@ -133,7 +123,6 @@ void gauss_flush(gaussian *gauss){
 
 void SetClock (bool highspeed)
 {	int high,low;
-//return;
 	i2c_get_period(I2C_NUM_0,&high,&low);
 	ESP_LOGI(LOG_HALL, "i2c periods %d %d",high,low);
 	if (highspeed){
@@ -164,23 +153,6 @@ void ui_i2c_writeData(uint8_t address, uint8_t *data_wr, size_t size_wr){
 	);
 }
 
-//void ui_i2c_startTransferData2(uint8_t address, uint8_t *data_wr, size_t size_wr,
-//		uint8_t *data_rd, size_t size_rd)
-//{ // is eral zie boven
-//    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-//    i2c_master_start(cmd);
-//    i2c_master_write_byte(cmd, (address << 1) | READ_BIT, ACK_CHECK_EN);
-//    if (size_wr > 1) {
-//    	i2c_master_write(cmd, data_wr, size_wr, ACK_CHECK_EN);
-//    }
-//    if (size_rd > 1) {
-//        i2c_master_read(cmd, data_rd, size_rd - 1, ACK_VAL);
-//    }
-//    i2c_master_stop(cmd);
-//    i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
-//    i2c_cmd_link_delete(cmd);
-//}
-//
 int SI7210_init(void){
 	uint8_t txdata[3];
 	uint8_t rxdata[10];
@@ -221,7 +193,6 @@ int SI7210_init(void){
 
 float HAL_data[200];
 char floatbuf[20]; // debug_print geen float // TODO gebruik vsprintf in debugprintf
-//int frequencies[4]={50000, 100000, 200000, 400000};
 uint8_t txdata[10];
 uint8_t rxdata[10];
 
@@ -230,13 +201,11 @@ int SI7210_read(void){
 	txdata[0]=R_STATUS1; //
 	txdata[1]=RB_1_BURST; // start meting
 	ui_i2c_writeData(SI7210_adress, txdata, 2);
-//		TIM_Waitus(12); // DONE: stop send
 	txdata[0]=R_BH; // lees RBH
 	ui_i2c_startTransferData(SI7210_adress, txdata, 1, rxdata, 2);
 	gz=0;
 	gz |= (rxdata[0] << 8) & 0xff00;
 	gz |= rxdata[1]  & 0xff;
-//	gz -=16384;
 	return gz;
 }
 
@@ -247,13 +216,6 @@ int SI7210_read_array(int count){
 	int gz=0,i,halidx=0,glitch_value=0;
 	int not_fresh=0;
 	count=count%200;
-//	static int fs =0;
-//
-//	int freq=frequencies[fs++];
-//	SetClock(freq);
-//	fs=fs%4;
-
-//	SetClock(true);
 	gauss_flush(&filter1);
 	glitchcount=0;
 	for(i=0 ; i < count; i++){
@@ -289,7 +251,6 @@ int SI7210_read_array(int count){
 	if (glitchcount > 0)
 		printf("Glitches %d %x\r\n",glitchcount,glitch_value);
 
-//	SetClock(false);
 	return gz;
 }
 

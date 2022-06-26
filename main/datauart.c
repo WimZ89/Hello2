@@ -60,19 +60,10 @@ int bytes2hex(void * data, void * destination, int size) {
 void gauss_update(int points, int top, int bot);
 int SI7210_read_array(int count);
 int SI7210_read_array_dummy(int count);
-//int SI7210_read(void);
 
-//void MCP3421_init(int gain);
-//float MCP3421_value(void);
-//float MCP3426_value(void);
-//extern double adc_val[2];
 void gotline(char * line){
-//	int size;
-//	ESP_LOGI(TAG, "Got line (%d,%d) '%s'\n",linebuffer_chunks,strlen(line),line);
 	switch (line[0]){
 	case '\r': // Scan
-//		MCP3426_value();
-//		ESP_LOGI(TAG,"ADC %f %f",adc_val[0],adc_val[1]);
 		break;
 	case 'S': // Scan
 		SI7210_read_array(180);
@@ -105,8 +96,6 @@ void gotline(char * line){
 
 void addlinechunk(uint8_t * buffer,int length){
 	char *nl=0;
-	//	printhex("linechunk", buffer, length);
-	//	printhex("line", linebuffer, 10);
 	if (length == 0) return;
 	if ((linebufferi + length + 1) > SIZEOFLINEBUFFER){
 		ESP_LOGE(TAG, "linebuffer overflow %d", linebufferi + length + 1 );
@@ -140,8 +129,6 @@ void data_uart_send_string(char *s){
 
 void data_uart_task(void *arg)
 {
-	/* Configure parameters of an UART driver,
-	 * communication pins and install the driver */
 	uart_config_t uart_config = {
 			.baud_rate = 115200,
 			.data_bits = UART_DATA_8_BITS,
@@ -160,7 +147,6 @@ void data_uart_task(void *arg)
 	ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &uart_config));
 	ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1, 2, 3, -1, -1)); //tx rx ..
 
-	// Configure a temporary buffer for the incoming data
 	uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
 	printf("uart_echo_task started");
 	data_uart_send_string("Started data uart\r\n");
@@ -168,12 +154,9 @@ void data_uart_task(void *arg)
 		// Read data from the UART
 		int len = uart_read_bytes(UART_NUM_1, data, (BUF_SIZE - 1), 20 / portTICK_PERIOD_MS);
 		addlinechunk(data,len);
-		// Write data back to the UART
-//		uart_write_bytes(UART_NUM_1, (const char *) data, len);
 		if (len) {
 			data[len] = '\0';
 			ESP_LOGI(TAG, "Recv str: %s", (char *) data);
 		}
 	}
 }
-
